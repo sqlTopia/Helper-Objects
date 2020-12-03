@@ -1,3 +1,6 @@
+IF OBJECT_ID(N'dbo.sqltopia_schema_table_column', N'IF') IS NULL
+        EXEC(N'CREATE FUNCTION dbo.sqltopia_schema_table_column() RETURNS TABLE AS RETURN SELECT NULL AS Yak;');
+GO
 CREATE FUNCTION dbo.sqltopia_schema_table_column
 (
         @schema_name SYSNAME,
