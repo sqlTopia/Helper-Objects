@@ -37,7 +37,10 @@ RETURN  SELECT          typ.name COLLATE DATABASE_DEFAULT AS datatype_name,
                                 WHEN typ.name COLLATE DATABASE_DEFAULT = N'xml' THEN xsc.name COLLATE DATABASE_DEFAULT
                                 ELSE NULL
                         END AS xml_collection_name,
-                        col.is_nullable,
+                        CASE
+                                WHEN col.is_nullable = 1 THEN N'yes'
+                                ELSE N'no'
+                        END AS is_nullable,
                         df.name COLLATE DATABASE_DEFAULT AS default_name,
                         ru.name COLLATE DATABASE_DEFAULT AS rule_name
         FROM            sys.columns AS col
