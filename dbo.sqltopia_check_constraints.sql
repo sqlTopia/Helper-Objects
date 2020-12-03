@@ -3,11 +3,11 @@ IF OBJECT_ID(N'dbo.sqltopia_check_constraints', N'IF') IS NULL
 GO
 ALTER FUNCTION dbo.sqltopia_check_constraints
 (
-        @check_if_object_exist BIT = 0
+        @check_if_object_exist BIT = 1
 )
 /*
-        sqltopia_check_constraints v1.7.2 (2020-11-15)
-        (C) 2012-2020, Peter Larsson
+        sqltopia_check_constraints v1.7.5 (2020-12-03)
+        (C) 2009-2020, Peter Larsson
 */
 RETURNS TABLE
 AS
@@ -21,13 +21,13 @@ RETURN  WITH cteCheckConstraints(check_constraint_name, schema_id, schema_name, 
                                 col.column_id,
                                 col.name COLLATE DATABASE_DEFAULT AS column_name,
                                 cc.definition COLLATE DATABASE_DEFAULT AS definition,
-                                CONCAT(N'EXISTS(SELECT * FROM sys.check_constraints WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(cc.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
+                                CONCAT(N'EXISTS (SELECT * FROM sys.check_constraints WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(cc.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
                 FROM            sys.check_constraints AS cc
                 INNER JOIN      sys.tables AS tbl ON tbl.object_id = cc.parent_object_id
                 INNER JOIN      sys.schemas AS sch ON sch.schema_id = tbl.schema_id
                 INNER JOIN      sys.columns AS col ON col.object_id = cc.parent_object_id
                 WHERE           col.column_id = cc.parent_column_id 
-                                OR CHARINDEX(QUOTENAME(col.name COLLATE DATABASE_DEFAULT), cc.definition COLLATE DATABASE_DEFAULT) >= 1
+                                OR CHARINDEX(QUOTENAME(col.name), cc.definition) >= 1
         )
         SELECT          cte.check_constraint_name, 
                         cte.schema_id, 

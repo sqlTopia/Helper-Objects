@@ -3,11 +3,11 @@ IF OBJECT_ID(N'dbo.sqltopia_indexes', N'IF') IS NULL
 GO
 ALTER FUNCTION dbo.sqltopia_indexes
 (
-        @check_if_object_exist BIT = 0
+        @check_if_object_exist BIT = 1
 )
 /*
-        sqltopia_indexes v1.7.2 (2020-11-15)
-        (C) 2012-2020, Peter Larsson
+        sqltopia_indexes v1.7.5 (2020-12-03)
+        (C) 2009-2020, Peter Larsson
 */
 RETURNS TABLE
 AS
@@ -31,7 +31,7 @@ RETURN  WITH cteIndexes(index_id, index_name, is_unique, is_primary_key, is_uniq
                                 STUFF(k.content.value(N'(.)[1]', N'NVARCHAR(MAX)'), 1, 2, N'') AS key_columns,
                                 STUFF(i.content.value(N'(.)[1]', N'NVARCHAR(MAX)'), 1, 2, N'') AS include_columns,
                                 STUFF(p.content.value(N'(.)[1]', N'NVARCHAR(MAX)'), 1, 2, N'') AS partition_columns,
-                                CONCAT(N'EXISTS(SELECT * FROM sys.indexes WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(ind.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
+                                CONCAT(N'EXISTS (SELECT * FROM sys.indexes WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(ind.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
                 FROM            sys.index_columns AS ic
                 INNER JOIN      sys.indexes AS ind ON ind.object_id = ic.object_id
                                         AND ind.index_id = ic.index_id
@@ -123,7 +123,7 @@ RETURN  WITH cteIndexes(index_id, index_name, is_unique, is_primary_key, is_uniq
                                         CASE
                                                 WHEN cte.is_primary_key = 1 THEN CONCAT(N'ALTER TABLE ', QUOTENAME(cte.schema_name), N'.', QUOTENAME(cte.table_name), N' ADD CONSTRAINT ', QUOTENAME(cte.index_name), N' PRIMARY KEY ', CASE WHEN cte.type_desc = 'CLUSTERED' THEN N'CLUSTERED' ELSE N'NONCLUSTERED' END)
                                                 WHEN cte.is_unique_constraint = 1 THEN CONCAT(N'ALTER TABLE ', QUOTENAME(cte.schema_name), N'.', QUOTENAME(cte.table_name), N' ADD CONSTRAINT ', QUOTENAME(cte.index_name), N' UNIQUE ', CASE WHEN cte.type_desc = 'CLUSTERED' THEN N'CLUSTERED' ELSE N'NONCLUSTERED' END)
-                                                ELSE CONCAT(N'CREATE ', CASE WHEN cte.is_unique = 1 THEN N'UNIQUE ' ELSE N'' END, CASE WHEN cte.type_desc = 'CLUSTERED ' THEN N'CLUSTERED ' ELSE N'NONCLUSTERED ' END, N'INDEX ', QUOTENAME(cte.index_name), N' ON ', QUOTENAME(cte.schema_name), N'.', QUOTENAME(cte.table_name))
+                                                ELSE CONCAT(N'CREATE ', CASE WHEN cte.is_unique = 1 THEN N'UNIQUE ' ELSE N'' END, CASE WHEN cte.type_desc = 'CLUSTERED' THEN N'CLUSTERED ' ELSE N'NONCLUSTERED ' END, N'INDEX ', QUOTENAME(cte.index_name), N' ON ', QUOTENAME(cte.schema_name), N'.', QUOTENAME(cte.table_name))
                                         END 
                                         + CONCAT(N' (', cte.key_columns, N')', CASE WHEN cte.include_columns IS NULL THEN N'' ELSE N' INCLUDE (' + cte.include_columns + N')' END, CASE WHEN cte.filter_definition IS NULL THEN N'' ELSE N' WHERE ' + cte.filter_definition END)
                                         + CONCAT(N' ', cte.with_clause)

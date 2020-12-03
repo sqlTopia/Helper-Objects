@@ -3,11 +3,11 @@ IF OBJECT_ID(N'dbo.sqltopia_computed_columns', N'IF') IS NULL
 GO
 ALTER FUNCTION dbo.sqltopia_computed_columns
 (
-        @check_if_object_exist BIT = 0
+        @check_if_object_exist BIT = 1
 )
 /*
-        sqltopia_computed_columns v1.7.2 (2020-11-15)
-        (C) 2012-2020, Peter Larsson
+        sqltopia_computed_columns v1.7.5 (2020-12-03)
+        (C) 2009-2020, Peter Larsson
 */
 RETURNS TABLE
 AS
@@ -22,12 +22,12 @@ RETURN  WITH cteComputedColumns(schema_id, schema_name, table_id, table_name, co
                                 c.name COLLATE DATABASE_DEFAULT AS computed_column_name,
                                 cc.definition COLLATE DATABASE_DEFAULT AS definition,
                                 cc.is_persisted,
-                                CONCAT(N'EXISTS(SELECT * FROM sys.computed_columns AS cc INNER JOIN sys.tables AS tbl ON tbl.object_id = cc.object_id AND tbl.name COLLATE DATABASE_DEFAULT = N', QUOTENAME(tbl.name COLLATE DATABASE_DEFAULT, N''''), N' INNER JOIN sys.schemas AS sch ON sch.schema_id = tbl.schema_id AND sch.name COLLATE DATABASE_DEFAULT = N', QUOTENAME(sch.name COLLATE DATABASE_DEFAULT, N''''), N' WHERE cc.name COLLATE DATABASE_DEFAULT = N', QUOTENAME(c.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
+                                CONCAT(N'EXISTS (SELECT * FROM sys.computed_columns AS cc INNER JOIN sys.tables AS tbl ON tbl.object_id = cc.object_id AND tbl.name COLLATE DATABASE_DEFAULT = N', QUOTENAME(tbl.name COLLATE DATABASE_DEFAULT, N''''), N' INNER JOIN sys.schemas AS sch ON sch.schema_id = tbl.schema_id AND sch.name COLLATE DATABASE_DEFAULT = N', QUOTENAME(sch.name COLLATE DATABASE_DEFAULT, N''''), N' WHERE cc.name COLLATE DATABASE_DEFAULT = N', QUOTENAME(c.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
                 FROM            sys.schemas AS sch
                 INNER JOIN      sys.tables AS tbl ON tbl.schema_id = sch.schema_id
                 INNER JOIN      sys.columns AS col ON col.object_id = tbl.object_id
                 INNER JOIN      sys.computed_columns AS cc ON cc.object_id = col.object_id
-                                        AND CHARINDEX(QUOTENAME(col.name COLLATE DATABASE_DEFAULT), cc.definition COLLATE DATABASE_DEFAULT) >= 1
+                                        AND CHARINDEX(QUOTENAME(col.name), cc.definition) >= 1
                 INNER JOIN      sys.columns AS c ON c.object_id = cc.object_id
                                         AND c.column_id = cc.column_id
         )

@@ -6,8 +6,8 @@ ALTER FUNCTION dbo.sqltopia_hierarchy
         @objtype NVARCHAR(8) = N'COLUMN'
 )
 /*
-        sqltopia_hierarchy v1.7.2 (2020-11-15)
-        (C) 2012-2020, Peter Larsson
+        sqltopia_hierarchy v1.7.5 (2020-12-03)
+        (C) 2009-2020, Peter Larsson
 */
 RETURNS @return TABLE
         (
@@ -26,8 +26,10 @@ RETURNS @return TABLE
         )
 AS
 BEGIN
-        IF @objtype IS NULL OR @objtype NOT IN (N'TABLE', N'COLUMN')
+        IF @objtype IS NULL OR UPPER(@objtype) NOT IN (N'TABLE', N'COLUMN')
                 RETURN;
+        ELSE
+                SET     @objtype = UPPER(@objtype);
 
         -- Local helper variable
         DECLARE @position INT = 1;

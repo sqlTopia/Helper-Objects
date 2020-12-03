@@ -3,11 +3,11 @@ IF OBJECT_ID(N'dbo.sqltopia_datatype_defaults', N'IF') IS NULL
 GO
 ALTER FUNCTION dbo.sqltopia_datatype_defaults
 (
-        @check_if_object_exist BIT = 0
+        @check_if_object_exist BIT = 1
 )
 /*
-        sqltopia_datatype_defaults v1.7.2 (2020-11-15)
-        (C) 2012-2020, Peter Larsson
+        sqltopia_datatype_defaults v1.7.5 (2020-12-03)
+        (C) 2009-2020, Peter Larsson
 */
 RETURNS TABLE
 AS
@@ -21,7 +21,7 @@ RETURN  WITH cteDefaults(schema_id, schema_name, table_id, table_name, column_id
                                 col.name COLLATE DATABASE_DEFAULT AS column_name,
                                 obj.name COLLATE DATABASE_DEFAULT AS default_name,
                                 sqm.definition COLLATE DATABASE_DEFAULT AS definition,
-                                CONCAT(N'EXISTS(SELECT * FROM sys.columns AS cc INNER JOIN sys.tables AS tbl ON tbl.object_id = cc.object_id AND tbl.name COLLATE DATABASE_DEFAULT = N', QUOTENAME(tbl.name COLLATE DATABASE_DEFAULT, N''''), N' INNER JOIN sys.schemas AS sch ON sch.schema_id = tbl.schema_id AND sch.name COLLATE DATABASE_DEFAULT = N', QUOTENAME(sch.name COLLATE DATABASE_DEFAULT, N''''), N' WHERE cc.name COLLATE DATABASE_DEFAULT = N', QUOTENAME(col.name COLLATE DATABASE_DEFAULT, N''''), N' AND cc.default_object_id <> 0)') AS precheck
+                                CONCAT(N'EXISTS (SELECT * FROM sys.columns AS cc INNER JOIN sys.tables AS tbl ON tbl.object_id = cc.object_id AND tbl.name COLLATE DATABASE_DEFAULT = N', QUOTENAME(tbl.name COLLATE DATABASE_DEFAULT, N''''), N' INNER JOIN sys.schemas AS sch ON sch.schema_id = tbl.schema_id AND sch.name COLLATE DATABASE_DEFAULT = N', QUOTENAME(sch.name COLLATE DATABASE_DEFAULT, N''''), N' WHERE cc.name COLLATE DATABASE_DEFAULT = N', QUOTENAME(col.name COLLATE DATABASE_DEFAULT, N''''), N' AND cc.default_object_id <> 0)') AS precheck
                 FROM            sys.columns AS col
                 INNER JOIN      sys.tables AS tbl ON tbl.object_id = col.object_id
                 INNER JOIN      sys.schemas AS sch ON sch.schema_id = tbl.schema_id

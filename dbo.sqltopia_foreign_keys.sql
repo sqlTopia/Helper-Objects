@@ -3,11 +3,11 @@ IF OBJECT_ID(N'dbo.sqltopia_foreign_keys', N'IF') IS NULL
 GO
 ALTER FUNCTION dbo.sqltopia_foreign_keys
 (
-        @check_if_object_exist BIT = 0
+        @check_if_object_exist BIT = 1
 )
 /*
-        sqltopia_foreign_keys v1.7.2 (2020-11-15)
-        (C) 2012-2020, Peter Larsson
+        sqltopia_foreign_keys v1.7.5 (2020-12-03)
+        (C) 2009-2020, Peter Larsson
 */
 RETURNS TABLE
 AS
@@ -40,7 +40,7 @@ RETURN  WITH cteForeignKeys(foreign_key_name, delete_action, update_action, pare
                                 cc.column_id AS child_column_id,
                                 cc.name COLLATE DATABASE_DEFAULT AS child_column_name,
                                 STUFF(c.columnlist.value(N'(text()[1])', N'NVARCHAR(MAX)'), 1, 2, N'') AS child_columnlist,
-                                CONCAT(N'EXISTS(SELECT * FROM sys.foreign_keys WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(fk.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
+                                CONCAT(N'EXISTS (SELECT * FROM sys.foreign_keys WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(fk.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
                 FROM            sys.foreign_keys AS fk
                 INNER JOIN      sys.foreign_key_columns AS fkc ON fkc.constraint_object_id = fk.object_id
                 INNER JOIN      sys.columns AS pc ON pc.object_id = fkc.referenced_object_id

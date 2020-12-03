@@ -3,11 +3,11 @@ IF OBJECT_ID(N'dbo.sqltopia_default_constraints', N'IF') IS NULL
 GO
 ALTER FUNCTION dbo.sqltopia_default_constraints
 (
-        @check_if_object_exist BIT = 0
+        @check_if_object_exist BIT = 1
 )
 /*
-        sqltopia_default_constraints v1.7.2 (2020-11-15)
-        (C) 2012-2020, Peter Larsson
+        sqltopia_default_constraints v1.7.5 (2020-12-03)
+        (C) 2009-2020, Peter Larsson
 */
 RETURNS TABLE
 AS
@@ -21,7 +21,7 @@ RETURN  WITH cteDefaultConstraints(default_constraint_name, schema_id, schema_na
                                 col.column_id,
                                 col.name COLLATE DATABASE_DEFAULT AS column_name,
                                 dc.definition COLLATE DATABASE_DEFAULT AS definition,
-                                CONCAT(N'EXISTS(SELECT * FROM sys.default_constraints WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(dc.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
+                                CONCAT(N'EXISTS (SELECT * FROM sys.default_constraints WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(dc.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
                 FROM            sys.default_constraints AS dc
                 INNER JOIN      sys.tables AS tbl ON tbl.object_id = dc.parent_object_id
                 INNER JOIN      sys.schemas AS sch ON sch.schema_id = tbl.schema_id

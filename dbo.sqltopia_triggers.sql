@@ -3,11 +3,11 @@ IF OBJECT_ID(N'dbo.sqltopia_triggers', N'IF') IS NULL
 GO
 ALTER FUNCTION dbo.sqltopia_triggers
 (
-        @check_if_object_exist BIT = 0
+        @check_if_object_exist BIT = 1
 )
 /*
-        sqltopia_triggers v1.7.2 (2020-11-15)
-        (C) 2012-2020, Peter Larsson
+        sqltopia_triggers v1.7.5 (2020-12-03)
+        (C) 2009-2020, Peter Larsson
 */
 RETURNS TABLE
 AS
@@ -19,7 +19,7 @@ RETURN  WITH cteTriggers(trigger_name, schema_id, schema_name, table_id, table_n
                                 tbl.object_id AS table_id,
                                 tbl.name COLLATE DATABASE_DEFAULT AS table_name,
                                 sqm.definition COLLATE DATABASE_DEFAULT AS definition,
-                                CONCAT(N'EXISTS(SELECT * FROM sys.triggers WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(trg.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
+                                CONCAT(N'EXISTS (SELECT * FROM sys.triggers WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(trg.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
                 FROM            sys.triggers AS trg
                 INNER JOIN      sys.tables AS tbl ON tbl.object_id = trg.parent_id
                 INNER JOIN      sys.schemas AS sch ON sch.schema_id = tbl.schema_id
