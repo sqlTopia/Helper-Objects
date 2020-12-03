@@ -42,7 +42,8 @@ RETURN  SELECT          typ.name COLLATE DATABASE_DEFAULT AS datatype_name,
                                 ELSE N'no'
                         END AS is_nullable,
                         df.name COLLATE DATABASE_DEFAULT AS default_name,
-                        ru.name COLLATE DATABASE_DEFAULT AS rule_name
+                        ru.name COLLATE DATABASE_DEFAULT AS rule_name,
+                        typ.is_user_defined
         FROM            sys.columns AS col
         INNER JOIN      sys.types AS typ ON col.user_type_id = typ.user_type_id
         LEFT JOIN       sys.xml_schema_collections AS xsc ON xsc.xml_collection_id = col.xml_collection_id
