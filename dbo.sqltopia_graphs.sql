@@ -6,8 +6,8 @@ ALTER FUNCTION dbo.sqltopia_graphs
         @objtype NVARCHAR(8) = N'COLUMN'
 )
 /*
-        sqltopia_graphs v1.7.5 (2020-12-03)
-        (C) 2009-2020, Peter Larsson
+        sqltopia_graphs v2.0.0 (2021-01-01)
+        (C) 2009-2021, Peter Larsson
 */
 RETURNS @return TABLE
         (
