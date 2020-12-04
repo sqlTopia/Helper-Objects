@@ -7,8 +7,8 @@ ALTER FUNCTION dbo.sqltopia_column_datatype
         @column_id INT
 )
 /*
-        sqltopia_column_datatype v1.7.5 (2020-12-03)
-        (C) 2009-2020, Peter Larsson
+        sqltopia_column_datatype v2.0.0 (2021-01-01)
+        (C) 2009-2021, Peter Larsson
 */
 RETURNS TABLE
 AS
