@@ -6,8 +6,8 @@ ALTER FUNCTION dbo.sqltopia_hierarchy
         @objtype NVARCHAR(8) = N'COLUMN'
 )
 /*
-        sqltopia_hierarchy v1.7.5 (2020-12-03)
-        (C) 2009-2020, Peter Larsson
+        sqltopia_hierarchy v2.0.0 (2021-01-01)
+        (C) 2009-2021, Peter Larsson
 */
 RETURNS @return TABLE
         (
