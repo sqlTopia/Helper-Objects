@@ -14,12 +14,13 @@ ALTER FUNCTION dbo.sqltopia_triggers
 */
 RETURNS TABLE
 AS
-RETURN  WITH cteTriggers(schema_id, schema_name, table_id, table_name, trigger_name, trigger_definition, precheck)
+RETURN  WITH cteTriggers(schema_id, schema_name, table_id, table_name, trigger_id, trigger_name, trigger_definition, precheck)
         AS (
                 SELECT          sch.schema_id,
                                 sch.schema_name,
                                 tbl.table_id,
                                 tbl.table_name,
+                                trg.trigger_id,
                                 trg.trigger_name,
                                 sqm.trigger_definition,
                                 CONCAT(N'EXISTS (SELECT * FROM sys.triggers WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(trg.trigger_name, N''''), N')') AS precheck
@@ -55,7 +56,9 @@ RETURN  WITH cteTriggers(schema_id, schema_name, table_id, table_name, trigger_n
         SELECT          cte.schema_id, 
                         cte.schema_name, 
                         cte.table_id, 
-                        cte.table_name, 
+                        cte.table_name,
+                        cte.trigger_id,
+                        cte.trigger_name,
                         CAST(act.query_action AS NVARCHAR(8)) AS query_action,
                         CASE
                                 WHEN @check_if_object_exist = 1 AND act.query_action = N'drop' THEN CONCAT(N'IF ', cte.precheck, N' ', act.query_text)
