@@ -3,27 +3,51 @@ IF OBJECT_ID(N'dbo.sqltopia_triggers', N'IF') IS NULL
 GO
 ALTER FUNCTION dbo.sqltopia_triggers
 (
-        @check_if_object_exist BIT = 1
+        @check_if_object_exist BIT = 1,
+        @schema_name SYSNAME = NULL,
+        @table_name SYSNAME = NULL
 )
 /*
-        sqltopia_triggers v1.7.5 (2020-12-03)
-        (C) 2009-2020, Peter Larsson
+        sqltopia_triggers v2.0.0 (2021-01-01)
+        (C) 2009-2021, Peter Larsson
 */
 RETURNS TABLE
 AS
-RETURN  WITH cteTriggers(trigger_name, schema_id, schema_name, table_id, table_name, definition, precheck)
+RETURN  WITH cteTriggers(schema_id, schema_name, table_id, table_name, trigger_name, definition, precheck)
         AS (
-                SELECT          trg.name COLLATE DATABASE_DEFAULT AS trigger_name,
-                                sch.schema_id,
-                                sch.name COLLATE DATABASE_DEFAULT AS schema_name,
-                                tbl.object_id AS table_id,
-                                tbl.name COLLATE DATABASE_DEFAULT AS table_name,
+                SELECT          sch.schema_id,
+                                sch.schema_name,
+                                tbl.table_id,
+                                tbl.table_name,
+                                trg.trigger_name,
                                 sqm.definition COLLATE DATABASE_DEFAULT AS definition,
-                                CONCAT(N'EXISTS (SELECT * FROM sys.triggers WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(trg.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
-                FROM            sys.triggers AS trg
-                INNER JOIN      sys.tables AS tbl ON tbl.object_id = trg.parent_id
-                INNER JOIN      sys.schemas AS sch ON sch.schema_id = tbl.schema_id
-                INNER JOIN      sys.sql_modules AS sqm ON sqm.object_id = trg.object_id
+                                CONCAT(N'EXISTS (SELECT * FROM sys.triggers WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(trg.trigger_name, N''''), N')') AS precheck
+                FROM            (
+                                        SELECT  parent_id AS table_id,
+                                                object_id AS trigger_id,
+                                                name COLLATE DATABASE_DEFAULT AS trigger_name
+                                        FROM    sys.triggers
+                                        WHERE   parent_id = OBJECT_ID(QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name), 'U')
+                                                OR @schema_name IS NULL AND @table_name IS NULL
+                                ) AS trg
+                INNER JOIN      (
+                                        SELECT  schema_id,
+                                                object_id AS table_id,
+                                                name COLLATE DATABASE_DEFAULT AS table_name
+                                        FROM    sys.tables
+                                        WHERE   object_id = OBJECT_ID(QUOTENAME(@schema_name) + N'.' + QUOTENAME(@table_name), 'U')
+                                                OR @schema_name IS NULL AND @table_name IS NULL
+                                ) AS tbl ON tbl.table_id = trg.table_id
+                INNER JOIN      (
+                                        SELECT  schema_id,
+                                                name COLLATE DATABASE_DEFAULT AS schema_name
+                                        FROM    sys.schemas
+                                ) AS sch ON sch.schema_id = tbl.schema_id
+                INNER JOIN      (
+                                        SELECT  object_id AS trigger_id,
+                                                definition COLLATE DATABASE_DEFAULT AS definition
+                                        FROM    sys.sql_modules
+                                ) AS sqm ON sqm.trigger_id = trg.trigger_id
         )
         SELECT          cte.schema_id, 
                         cte.schema_name, 
