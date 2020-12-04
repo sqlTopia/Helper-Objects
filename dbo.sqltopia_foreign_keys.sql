@@ -3,11 +3,7 @@ IF OBJECT_ID(N'dbo.sqltopia_foreign_keys', N'IF') IS NULL
 GO
 ALTER FUNCTION dbo.sqltopia_foreign_keys
 (
-        @check_if_object_exist BIT = 1,
-        @schema_name SYSNAME = NULL,
-        @table_name SYSNAME = NULL,
-        @column_name SYSNAME = NULL,
-        @foreign_key_name SYSNAME = NULL
+        @check_if_object_exist BIT = 1
 )
 /*
         sqltopia_foreign_keys v2.0.0 (2021-01-01)
@@ -52,8 +48,6 @@ RETURN  WITH cteForeignKeys(parent_schema_id, parent_schema_name, parent_table_i
                                                         ELSE N'ON UPDATE NO ACTION'
                                                 END AS update_action
                                         FROM    sys.foreign_keys
-                                        WHERE   name COLLATE DATABASE_DEFAULT = @foreign_key_name AND @foreign_key_name IS NOT NULL
-                                                OR @foreign_key_name IS NULL
                                 ) AS fk
                 INNER JOIN      (
                                         SELECT  constraint_object_id AS foreign_key_id,
@@ -109,17 +103,6 @@ RETURN  WITH cteForeignKeys(parent_schema_id, parent_schema_name, parent_table_i
                                         FOR XML         PATH(N''),
                                                         TYPE
                                 ) AS c(columnlist)
-                WHERE           (
-                                        (pc.parent_schema_name = @schema_name AND @schema_name IS NOT NULL OR @schema_name IS NULL)
-                                        AND (pc.parent_table_name = @table_name AND @table_name IS NOT NULL OR @table_name IS NULL)
-                                        AND (pc.parent_column_name = @column_name AND @column_name IS NOT NULL OR @column_name IS NULL)
-                                )
-                                OR 
-                                (
-                                        (cc.child_schema_name = @schema_name AND @schema_name IS NOT NULL OR @schema_name IS NULL)
-                                        AND (cc.child_table_name = @table_name AND @table_name IS NOT NULL OR @table_name IS NULL)
-                                        AND (cc.child_column_name = @column_name AND @column_name IS NOT NULL OR @column_name IS NULL)
-                                )
         )
         SELECT          cte.parent_schema_id, 
                         cte.parent_schema_name, 
