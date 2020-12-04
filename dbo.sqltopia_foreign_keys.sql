@@ -11,7 +11,7 @@ ALTER FUNCTION dbo.sqltopia_foreign_keys
 */
 RETURNS TABLE
 AS
-RETURN  WITH cteForeignKeys(parent_schema_id, parent_schema_name, parent_table_id, parent_table_name, parent_column_id, parent_column_name, child_schema_id, child_schema_name, child_table_id, child_table_name, child_column_id, child_column_name, foreign_key_id, foreign_key_name, delete_action, update_action, parent_columnlist, child_columnlist, precheck)
+RETURN  WITH cteForeignKeys(parent_schema_id, parent_schema_name, parent_table_id, parent_table_name, parent_column_id, parent_column_name, child_schema_id, child_schema_name, child_table_id, child_table_name, child_column_id, child_column_name, foreign_key_id, foreign_key_name, is_not_trusted, delete_action, update_action, parent_columnlist, child_columnlist, precheck)
         AS (
                 SELECT          pc.parent_schema_id,
                                 pc.parent_schema_name,
@@ -27,6 +27,7 @@ RETURN  WITH cteForeignKeys(parent_schema_id, parent_schema_name, parent_table_i
                                 cc.child_column_name,
                                 fk.foreign_key_id,
                                 fk.foreign_key_name,
+                                fk.is_not_trusted,
                                 fk.delete_action,
                                 fk.update_action,
                                 STUFF(p.columnlist.value(N'(text()[1])', N'NVARCHAR(MAX)'), 1, 2, N'') AS parent_columnlist,
@@ -46,7 +47,8 @@ RETURN  WITH cteForeignKeys(parent_schema_id, parent_schema_name, parent_table_i
                                                         WHEN update_referential_action = 2 THEN N'ON UPDATE SET NULL'
                                                         WHEN update_referential_action = 3 THEN N'ON UPDATE SET DEFAULT'
                                                         ELSE N'ON UPDATE NO ACTION'
-                                                END AS update_action
+                                                END AS update_action,
+                                                is_not_trusted
                                         FROM    sys.foreign_keys
                                 ) AS fk
                 INNER JOIN      (
@@ -118,6 +120,7 @@ RETURN  WITH cteForeignKeys(parent_schema_id, parent_schema_name, parent_table_i
                         cte.child_column_name,
                         cte.foreign_key_id, 
                         cte.foreign_key_name, 
+                        cte.is_not_trusted,
                         CAST(act.query_action AS NVARCHAR(8)) AS query_action,
                         CASE
                                 WHEN @check_if_object_exist = 1 AND act.query_action = N'drop' THEN CONCAT(N'IF ', cte.precheck, N' ', act.query_text)
