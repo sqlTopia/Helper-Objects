@@ -3,79 +3,125 @@ IF OBJECT_ID(N'dbo.sqltopia_foreign_keys', N'IF') IS NULL
 GO
 ALTER FUNCTION dbo.sqltopia_foreign_keys
 (
-        @check_if_object_exist BIT = 1
+        @check_if_object_exist BIT = 1,
+        @schema_name SYSNAME = NULL,
+        @table_name SYSNAME = NULL,
+        @column_name SYSNAME = NULL,
+        @foreign_key_name SYSNAME = NULL
 )
 /*
-        sqltopia_foreign_keys v1.7.5 (2020-12-03)
-        (C) 2009-2020, Peter Larsson
+        sqltopia_foreign_keys v2.0.0 (2021-01-01)
+        (C) 2009-2021, Peter Larsson
 */
 RETURNS TABLE
 AS
-RETURN  WITH cteForeignKeys(foreign_key_name, delete_action, update_action, parent_schema_id, parent_schema_name, parent_table_id, parent_table_name, parent_column_id, parent_column_name, parent_columnlist, child_schema_id, child_schema_name, child_table_id, child_table_name, child_column_id, child_column_name, child_columnlist, precheck)
+RETURN  WITH cteForeignKeys(parent_schema_id, parent_schema_name, parent_table_id, parent_table_name, parent_column_id, parent_column_name, child_schema_id, child_schema_name, child_table_id, child_table_name, child_column_id, child_column_name, foreign_key_id, foreign_key_name, delete_action, update_action, parent_columnlist, child_columnlist, precheck)
         AS (
-                SELECT          fk.name COLLATE DATABASE_DEFAULT AS foreign_key_name,
-                                CASE
-                                        WHEN fk.delete_referential_action = 1 THEN N'ON DELETE CASCADE'
-                                        WHEN fk.delete_referential_action = 2 THEN N'ON DELETE SET NULL'
-                                        WHEN fk.delete_referential_action = 3 THEN N'ON DELETE SET DEFAULT'
-                                        ELSE N'ON DELETE NO ACTION'
-                                END AS delete_action,
-                                CASE
-                                        WHEN fk.update_referential_action = 1 THEN N'ON UPDATE CASCADE'
-                                        WHEN fk.update_referential_action = 2 THEN N'ON UPDATE SET NULL'
-                                        WHEN fk.update_referential_action = 3 THEN N'ON UPDATE SET DEFAULT'
-                                        ELSE N'ON UPDATE NO ACTION'
-                                END AS update_action,
-                                ps.schema_id AS parent_schema_id,
-                                ps.name COLLATE DATABASE_DEFAULT AS parent_schema_name,
-                                pt.object_id AS parent_table_id,
-                                pt.name COLLATE DATABASE_DEFAULT AS parent_table_name,
-                                pc.column_id AS parent_column_id,
-                                pc.name COLLATE DATABASE_DEFAULT AS parent_column_name,
+                SELECT          pc.parent_schema_id,
+                                pc.parent_schema_name,
+                                pc.parent_table_id,
+                                pc.parent_table_name,
+                                pc.parent_column_id,
+                                pc.parent_column_name,
+                                cc.child_schema_id,
+                                cc.child_schema_name,
+                                cc.child_table_id,
+                                cc.child_table_name,
+                                cc.child_column_id,
+                                cc.child_column_name,
+                                fk.foreign_key_id,
+                                fk.foreign_key_name,
+                                fk.delete_action,
+                                fk.update_action,
                                 STUFF(p.columnlist.value(N'(text()[1])', N'NVARCHAR(MAX)'), 1, 2, N'') AS parent_columnlist,
-                                cs.schema_id AS child_schema_id,
-                                cs.name COLLATE DATABASE_DEFAULT AS child_schema_name,
-                                ct.object_id AS child_table_id,
-                                ct.name COLLATE DATABASE_DEFAULT AS child_table_name,
-                                cc.column_id AS child_column_id,
-                                cc.name COLLATE DATABASE_DEFAULT AS child_column_name,
                                 STUFF(c.columnlist.value(N'(text()[1])', N'NVARCHAR(MAX)'), 1, 2, N'') AS child_columnlist,
-                                CONCAT(N'EXISTS (SELECT * FROM sys.foreign_keys WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(fk.name COLLATE DATABASE_DEFAULT, N''''), N')') AS precheck
-                FROM            sys.foreign_keys AS fk
-                INNER JOIN      sys.foreign_key_columns AS fkc ON fkc.constraint_object_id = fk.object_id
-                INNER JOIN      sys.columns AS pc ON pc.object_id = fkc.referenced_object_id
-                                        AND pc.column_id = fkc.referenced_column_id
-                INNER JOIN      sys.tables AS pt ON pt.object_id = pc.object_id
-                INNER JOIN      sys.schemas AS ps ON ps.schema_id = pt.schema_id
-                INNER JOIN      sys.columns AS cc ON cc.object_id = fkc.parent_object_id
-                                        AND cc.column_id = fkc.parent_column_id
-                INNER JOIN      sys.tables AS ct ON ct.object_id = cc.object_id
-                INNER JOIN      sys.schemas AS cs ON cs.schema_id = pt.schema_id
+                                CONCAT(N'EXISTS (SELECT * FROM sys.foreign_keys WHERE name COLLATE DATABASE_DEFAULT = N', QUOTENAME(fk.foreign_key_name, N''''), N')') AS precheck
+                FROM            (
+                                        SELECT  object_id AS foreign_key_id,
+                                                name COLLATE DATABASE_DEFAULT AS foreign_key_name,
+                                                CASE
+                                                        WHEN delete_referential_action = 1 THEN N'ON DELETE CASCADE'
+                                                        WHEN delete_referential_action = 2 THEN N'ON DELETE SET NULL'
+                                                        WHEN delete_referential_action = 3 THEN N'ON DELETE SET DEFAULT'
+                                                        ELSE N'ON DELETE NO ACTION'
+                                                END AS delete_action,
+                                                CASE
+                                                        WHEN update_referential_action = 1 THEN N'ON UPDATE CASCADE'
+                                                        WHEN update_referential_action = 2 THEN N'ON UPDATE SET NULL'
+                                                        WHEN update_referential_action = 3 THEN N'ON UPDATE SET DEFAULT'
+                                                        ELSE N'ON UPDATE NO ACTION'
+                                                END AS update_action
+                                        FROM    sys.foreign_keys
+                                        WHERE   name COLLATE DATABASE_DEFAULT = @foreign_key_name AND @foreign_key_name IS NOT NULL
+                                                OR @foreign_key_name IS NULL
+                                ) AS fk
+                INNER JOIN      (
+                                        SELECT  constraint_object_id AS foreign_key_id,
+                                                referenced_object_id AS parent_table_id,
+                                                referenced_column_id AS parent_column_id,
+                                                parent_object_id AS child_table_id,
+                                                parent_column_id AS child_column_id
+                                        FROM    sys.foreign_key_columns
+                                ) AS fkc ON fkc.foreign_key_id = fk.foreign_key_id
+                INNER JOIN      (
+                                        SELECT          sch.schema_id AS parent_schema_id,
+                                                        sch.name COLLATE DATABASE_DEFAULT AS parent_schema_name,
+                                                        tbl.object_id AS parent_table_id,
+                                                        tbl.name COLLATE DATABASE_DEFAULT AS parent_table_name,
+                                                        col.column_id AS parent_column_id,
+                                                        col.name COLLATE DATABASE_DEFAULT AS parent_column_name
+                                        FROM            sys.columns AS col
+                                        INNER JOIN      sys.tables AS tbl ON tbl.object_id = col.object_id
+                                        INNER JOIN      sys.schemas AS sch ON sch.schema_id = tbl.schema_id
+                                ) AS pc ON pc.parent_table_id = fkc.parent_table_id
+                                        AND pc.parent_column_id = fkc.parent_column_id
+                INNER JOIN      (
+                                        SELECT          sch.schema_id AS child_schema_id,
+                                                        sch.name COLLATE DATABASE_DEFAULT AS child_schema_name,
+                                                        tbl.object_id AS child_table_id,
+                                                        tbl.name COLLATE DATABASE_DEFAULT AS child_table_name,
+                                                        col.column_id AS child_column_id,
+                                                        col.name COLLATE DATABASE_DEFAULT AS child_column_name
+                                        FROM            sys.columns AS col
+                                        INNER JOIN      sys.tables AS tbl ON tbl.object_id = col.object_id
+                                        INNER JOIN      sys.schemas AS sch ON sch.schema_id = tbl.schema_id
+                                ) AS cc ON cc.child_table_id = fkc.child_table_id
+                                        AND cc.child_column_id = fkc.child_column_id
                 CROSS APPLY     (
                                         SELECT          CONCAT(N', ', QUOTENAME(col.name COLLATE DATABASE_DEFAULT))
-                                        FROM            sys.foreign_key_columns AS fkc
-                                        INNER JOIN      sys.columns AS col ON col.object_id = fkc.referenced_object_id
-                                                                AND col.column_id = fkc.referenced_column_id
-                                        WHERE           fkc.constraint_object_id = fk.object_id
-                                                        AND fkc.referenced_object_id = fk.referenced_object_id
-                                        ORDER BY        fkc.constraint_column_id
+                                        FROM            sys.foreign_key_columns AS pfk
+                                        INNER JOIN      sys.columns AS col ON col.object_id = pfk.referenced_object_id
+                                                                AND col.column_id = pfk.referenced_column_id
+                                        WHERE           pfk.constraint_object_id = fkc.foreign_key_id
+                                                        AND pfk.referenced_object_id = fkc.parent_table_id
+                                        ORDER BY        pfk.constraint_column_id
                                         FOR XML         PATH(N''),
                                                         TYPE
                                 ) AS p(columnlist)
                 CROSS APPLY     (
                                         SELECT          CONCAT(N', ', QUOTENAME(col.name COLLATE DATABASE_DEFAULT))
-                                        FROM            sys.foreign_key_columns AS fkc
-                                        INNER JOIN      sys.columns AS col ON col.object_id = fkc.parent_object_id
-                                                                AND col.column_id = fkc.parent_column_id
-                                        WHERE           fkc.constraint_object_id = fk.object_id
-                                                        AND fkc.parent_object_id = fk.parent_object_id
-                                        ORDER BY        fkc.constraint_column_id
+                                        FROM            sys.foreign_key_columns AS cfk
+                                        INNER JOIN      sys.columns AS col ON col.object_id = cfk.parent_object_id
+                                                                AND col.column_id = cfk.parent_column_id
+                                        WHERE           cfk.constraint_object_id = fkc.foreign_key_id
+                                                        AND cfk.parent_object_id = fkc.child_table_id
+                                        ORDER BY        cfk.constraint_column_id
                                         FOR XML         PATH(N''),
                                                         TYPE
                                 ) AS c(columnlist)
+                WHERE           (
+                                        (pc.parent_schema_name = @schema_name AND @schema_name IS NOT NULL OR @schema_name IS NULL)
+                                        AND (pc.parent_table_name = @table_name AND @table_name IS NOT NULL OR @table_name IS NULL)
+                                        AND (pc.parent_column_name = @column_name AND @column_name IS NOT NULL OR @column_name IS NULL)
+                                )
+                                OR 
+                                (
+                                        (cc.child_schema_name = @schema_name AND @schema_name IS NOT NULL OR @schema_name IS NULL)
+                                        AND (cc.child_table_name = @table_name AND @table_name IS NOT NULL OR @table_name IS NULL)
+                                        AND (cc.child_column_name = @column_name AND @column_name IS NOT NULL OR @column_name IS NULL)
+                                )
         )
-        SELECT          cte.foreign_key_name, 
-                        cte.parent_schema_id, 
+        SELECT          cte.parent_schema_id, 
                         cte.parent_schema_name, 
                         cte.parent_table_id, 
                         cte.parent_table_name, 
@@ -87,6 +133,8 @@ RETURN  WITH cteForeignKeys(foreign_key_name, delete_action, update_action, pare
                         cte.child_table_name, 
                         cte.child_column_id, 
                         cte.child_column_name,
+                        cte.foreign_key_id, 
+                        cte.foreign_key_name, 
                         CAST(act.query_action AS NVARCHAR(8)) AS query_action,
                         CASE
                                 WHEN @check_if_object_exist = 1 AND act.query_action = N'drop' THEN CONCAT(N'IF ', cte.precheck, N' ', act.query_text)
