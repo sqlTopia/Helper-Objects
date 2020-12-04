@@ -3,10 +3,7 @@ IF OBJECT_ID(N'dbo.sqltopia_triggers', N'IF') IS NULL
 GO
 ALTER FUNCTION dbo.sqltopia_triggers
 (
-        @check_if_object_exist BIT = 1,
-        @schema_name SYSNAME = NULL,
-        @table_name SYSNAME = NULL,
-        @trigger_name SYSNAME = NULL
+        @check_if_object_exist BIT = 1
 )
 /*
         sqltopia_triggers v2.0.0 (2021-01-01)
@@ -29,23 +26,17 @@ RETURN  WITH cteTriggers(schema_id, schema_name, table_id, table_name, trigger_i
                                                 object_id AS trigger_id,
                                                 name COLLATE DATABASE_DEFAULT AS trigger_name
                                         FROM    sys.triggers
-                                        WHERE   name COLLATE DATABASE_DEFAULT = @trigger_name AND @trigger_name IS NOT NULL
-                                                OR @trigger_name IS NULL
                                 ) AS trg
                 INNER JOIN      (
                                         SELECT  schema_id,
                                                 object_id AS table_id,
                                                 name COLLATE DATABASE_DEFAULT AS table_name
                                         FROM    sys.tables
-                                        WHERE   name COLLATE DATABASE_DEFAULT = @table_name AND @table_name IS NOT NULL
-                                                OR @table_name IS NULL
                                 ) AS tbl ON tbl.table_id = trg.table_id
                 INNER JOIN      (
                                         SELECT  schema_id,
                                                 name COLLATE DATABASE_DEFAULT AS schema_name
                                         FROM    sys.schemas
-                                        WHERE   name COLLATE DATABASE_DEFAULT = @schema_name AND @schema_name IS NOT NULL
-                                                OR @schema_name IS NULL
                                 ) AS sch ON sch.schema_id = tbl.schema_id
                 INNER JOIN      (
                                         SELECT  object_id AS trigger_id,
