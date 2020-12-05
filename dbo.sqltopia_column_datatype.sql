@@ -3,8 +3,9 @@ IF OBJECT_ID(N'dbo.sqltopia_column_datatype', N'IF') IS NULL
 GO
 ALTER FUNCTION dbo.sqltopia_column_datatype
 (
-        @table_id INT,
-        @column_id INT
+        @schema_name SYSNAME,
+        @table_name SYSNAME,
+        @column_name SYSNAME
 )
 /*
         sqltopia_column_datatype v2.0.0 (2021-01-01)
@@ -46,6 +47,10 @@ RETURN  SELECT          typ.name COLLATE DATABASE_DEFAULT AS datatype_name,
                         typ.is_user_defined
         FROM            sys.columns AS col
         INNER JOIN      sys.types AS typ ON col.user_type_id = typ.user_type_id
+        INNER JOIN      sys.tables AS tbl ON tbl.object_id = col.object_id
+                                AND tbl.name COLLATE DATABASE_DEFAULT = @table_name
+        INNER JOIN      sys.schemas AS sch ON sch.schema_id = tbl.schema_id
+                                AND sch.name COLLATE DATABASE_DEFAULT = @schema_name
         LEFT JOIN       sys.xml_schema_collections AS xsc ON xsc.xml_collection_id = col.xml_collection_id
                                 AND xsc.xml_collection_id <> 0
         LEFT JOIN       sys.objects AS df ON df.object_id = col.default_object_id
@@ -54,6 +59,5 @@ RETURN  SELECT          typ.name COLLATE DATABASE_DEFAULT AS datatype_name,
         LEFT JOIN       sys.objects AS ru ON ru.object_id = col.rule_object_id
                                 AND ru.object_id <> 0
                                 AND ru.type COLLATE DATABASE_DEFAULT = 'R'
-        WHERE           col.object_id = @table_id
-                        AND col.column_id = @column_id;
+        WHERE           col.name COLLATE DATABASE_DEFAULT = @column_name;
 GO
