@@ -5,10 +5,6 @@ ALTER FUNCTION dbo.sqltopia_hierarchy
 (
         @objtype NVARCHAR(8) = N'COLUMN'
 )
-/*
-        sqltopia_hierarchy v2.0.0 (2021-01-01)
-        (C) 2009-2021, Peter Larsson
-*/
 RETURNS @return TABLE
         (
                 schema_id INT NOT NULL,
@@ -26,10 +22,8 @@ RETURNS @return TABLE
         )
 AS
 BEGIN
-        IF @objtype IS NULL OR UPPER(@objtype) NOT IN (N'TABLE', N'COLUMN')
+        IF @objtype IS NULL OR @objtype NOT IN (N'TABLE', N'COLUMN')
                 RETURN;
-        ELSE
-                SET     @objtype = UPPER(@objtype);
 
         -- Local helper variable
         DECLARE @position INT = 1;
@@ -157,8 +151,7 @@ BEGIN
                                 FROM    @return
                         )
                         UPDATE  ctePositions
-                        SET     position = rnk
-                        WHERE   position <> rnk;
+                        SET     position = rnk;
 
                         WITH ctePositions(position, rnk)
                         AS (
@@ -167,8 +160,7 @@ BEGIN
                                 FROM    @return
                         )
                         UPDATE  ctePositions
-                        SET     position = rnk
-                        WHERE   position <> rnk;
+                        SET     position = rnk;
                 END;
 
         -- Finished
