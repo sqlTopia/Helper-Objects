@@ -50,7 +50,7 @@ RETURN  WITH cteDefaults(schema_id, schema_name, table_id, table_name, column_id
                                         ),
                                         (
                                                 N'bidf',
-                                                CONCAT(N'EXEC sys.sp_binddefault @defname = N', QUOTENAME(cte.default_name, N''''), N', @objname = N''', REPLACE(QUOTENAME(cte.schema_name) + N'.' + QUOTENAME(cte.table_name) + N'.' + QUOTENAME(cte.column_name), N'''', N''''''), N''';')
+                                                CONCAT(N'EXEC sys.sp_binddefault @defname = N', QUOTENAME(cte.default_name, N''''), N', @objname = N''', REPLACE(QUOTENAME(cte.schema_name) + N'.' + QUOTENAME(cte.table_name) + N'.' + CASE WHEN cte.column_name = @column_name AND @new_column_name > N'' THEN QUOTENAME(@new_column_name) ELSE QUOTENAME(cte.column_name) END, N'''', N''''''), N''';')
                                         ),
                                         (
                                                 N'drdf',
