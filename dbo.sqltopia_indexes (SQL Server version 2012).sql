@@ -9,7 +9,7 @@ ALTER FUNCTION dbo.sqltopia_indexes
         @new_column_name SYSNAME = NULL
 )
 RETURNS TABLE
-RETURN  WITH cteDefinitions
+RETURN  WITH cteIndexes
         AS (
                 SELECT          sch.name COLLATE DATABASE_DEFAULT AS schema_name,
                                 tbl.object_id AS table_id,
@@ -77,7 +77,8 @@ RETURN  WITH cteDefinitions
                                         ELSE N''
                                 END AS bounding_box,
                                 CONCAT(N'GRIDS = (LEVEL_1 = ', sit.level_1_grid_desc COLLATE DATABASE_DEFAULT, N', LEVEL_2 = ', sit.level_2_grid_desc COLLATE DATABASE_DEFAULT, N', LEVEL_3 = ', sit.level_3_grid_desc COLLATE DATABASE_DEFAULT, N', LEVEL_4 = ', sit.level_4_grid_desc COLLATE DATABASE_DEFAULT, N')') AS grids,
-                                CONCAT(N', CELLS_PER_OBJECT = ', sit.cells_per_object) AS cells_per_object
+                                CONCAT(N', CELLS_PER_OBJECT = ', sit.cells_per_object) AS cells_per_object,
+                                ind.is_disabled
                 FROM            sys.indexes AS ind
                 INNER JOIN      sys.tables AS tbl ON tbl.object_id = ind.object_id
                                         AND tbl.type = 'U'
@@ -232,9 +233,10 @@ RETURN  WITH cteDefinitions
                         cte.page_count,
                         cte.index_type_major,
                         cte.index_type_minor,
+                        cte.is_disabled,
                         CAST(act.action_code AS NCHAR(4)) AS action_code,
                         act.sql_text
-        FROM            cteDefinitions AS cte
+        FROM            cteIndexes AS cte
         CROSS APPLY     (
                                 SELECT  N'crix' AS action_code,
                                         CASE
