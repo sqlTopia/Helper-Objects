@@ -8,7 +8,7 @@ ALTER FUNCTION dbo.sqltopia_table_triggers
 )
 RETURNS TABLE
 AS
-RETURN  WITH cteTriggers(schema_id, schema_name, table_id, table_name, trigger_id, trigger_name, trigger_definition)
+RETURN  WITH cteTriggers(schema_id, schema_name, table_id, table_name, trigger_id, trigger_name, trigger_definition, is_disabled, is_ms_shipped)
         AS (
                 SELECT          sch.schema_id,
                                 sch.name COLLATE DATABASE_DEFAULT AS schema_name,
@@ -16,7 +16,9 @@ RETURN  WITH cteTriggers(schema_id, schema_name, table_id, table_name, trigger_i
                                 tbl.name COLLATE DATABASE_DEFAULT AS table_name,
                                 trg.object_id AS trigger_id,
                                 trg.name COLLATE DATABASE_DEFAULT AS trigger_name,
-                                sqm.definition COLLATE DATABASE_DEFAULT AS trigger_definition
+                                sqm.definition COLLATE DATABASE_DEFAULT AS trigger_definition,
+                                trg.is_disabled, 
+                                trg.is_ms_shipped
                 FROM            sys.sql_modules AS sqm
                 INNER JOIN      sys.triggers AS trg ON trg.object_id = sqm.object_id
                 INNER JOIN      sys.tables AS tbl ON tbl.object_id = trg.parent_id
@@ -31,6 +33,8 @@ RETURN  WITH cteTriggers(schema_id, schema_name, table_id, table_name, trigger_i
                         cte.table_name,
                         cte.trigger_id,
                         cte.trigger_name,
+                        cte.is_disabled, 
+                        cte.is_ms_shipped,
                         CAST(act.action_code AS NCHAR(4)) AS action_code,
                         act.sql_text
         FROM            cteTriggers AS cte
