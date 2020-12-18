@@ -232,7 +232,7 @@ RETURN  WITH cteDefinitions
                         cte.page_count,
                         cte.index_type_major,
                         cte.index_type_minor,
-                        act.action_code,
+                        CAST(act.action_code AS NCHAR(4)) AS action_code,
                         act.sql_text
         FROM            cteDefinitions AS cte
         CROSS APPLY     (
