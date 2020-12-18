@@ -23,7 +23,7 @@ RETURN  WITH cteCheckConstraints(schema_id, schema_name, table_id, table_name, c
                                 chc.is_ms_shipped,
                                 chc.is_not_trusted,
                                 CASE
-                                        WHEN col.name COLLATE DATABASE_DEFAULT = @column_name AND @new_column_name > N'' THEN REPLACE(chc.definition COLLATE DATABASE_DEFAULT, QUOTENAME(@column_name), QUOTENAME(@new_column_name))
+                                        WHEN @new_column_name > N'' THEN REPLACE(chc.definition COLLATE DATABASE_DEFAULT, QUOTENAME(@column_name), QUOTENAME(@new_column_name))
                                         ELSE chc.definition COLLATE DATABASE_DEFAULT
                                 END AS check_definition
                 FROM            sys.check_constraints AS chc
