@@ -3,13 +3,9 @@ IF OBJECT_ID(N'dbo.sqltopia_retry', N'P') IS NULL
 GO
 ALTER PROCEDURE dbo.sqltopia_retry
 (
-        @query_text NVARCHAR(MAX),
-        @max_retry_count TINYINT = 3
+        @sql_text NVARCHAR(MAX),
+        @max_retry_count TINYINT = 2
 )
-/*
-        sqltopia_retry v2.0.0 (2021-01-01)
-        (C) 2009-2021, Peter Larsson
-*/
 AS
 
 -- Prevent unwanted resultsets back to client
@@ -20,16 +16,13 @@ DECLARE @current_retry TINYINT = 0;
 
 -- Validate user supplied parameter values
 IF @max_retry_count IS NULL
-        SET     @max_retry_count = 3;
-
-IF @max_retry_count > 25
-        SET     @max_retry_count = 25;
+        SET     @max_retry_count = 2;
 
 -- Retry until no more retries are available
 WHILE @current_retry <= @max_retry_count
         BEGIN
                 BEGIN TRY
-                        EXEC    (@query_text);
+                        EXEC    (@sql_text);
 
                         BREAK;
                 END TRY
