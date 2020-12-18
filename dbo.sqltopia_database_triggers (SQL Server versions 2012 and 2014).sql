@@ -6,17 +6,21 @@ ALTER FUNCTION dbo.sqltopia_database_triggers
 )
 RETURNS TABLE
 AS
-RETURN  WITH cteTriggers(trigger_id, trigger_name, trigger_definition)
+RETURN  WITH cteTriggers(trigger_id, trigger_name, trigger_definition, is_disabled, is_ms_shipped)
         AS (
                 SELECT          trg.object_id AS trigger_id,
                                 trg.name COLLATE DATABASE_DEFAULT AS trigger_name,
-                                sqm.definition COLLATE DATABASE_DEFAULT AS trigger_definition
+                                sqm.definition COLLATE DATABASE_DEFAULT AS trigger_definition,
+                                trg.is_disabled,
+                                trg.is_ms_shipped,
                 FROM            sys.sql_modules AS sqm
                 INNER JOIN      sys.triggers AS trg ON trg.object_id = sqm.object_id
                 WHERE           trg.parent_class_desc = N'DATABASE'
         )
         SELECT          cte.trigger_id,
                         cte.trigger_name,
+                        is_disabled,
+                        is_ms_shipped, 
                         CAST(act.action_code AS NCHAR(4)) AS action_code,
                         act.sql_text
         FROM            cteTriggers AS cte
