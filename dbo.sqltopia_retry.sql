@@ -4,7 +4,7 @@ GO
 ALTER PROCEDURE dbo.sqltopia_retry
 (
         @sql_text NVARCHAR(MAX),
-        @max_retry_count TINYINT = 2
+        @max_retry_count TINYINT = 99
 )
 AS
 
@@ -15,8 +15,8 @@ SET NOCOUNT ON;
 DECLARE @current_retry TINYINT = 0;
 
 -- Validate user supplied parameter values
-IF @max_retry_count IS NULL
-        SET     @max_retry_count = 2;
+IF @max_retry_count IS NULL OR @max_retry_count > 99
+        SET     @max_retry_count = 99;
 
 -- Retry until no more retries are available
 WHILE @current_retry <= @max_retry_count
