@@ -23,6 +23,7 @@ RETURN  WITH cteTriggers(schema_id, schema_name, table_id, table_name, trigger_i
                                         AND (tbl.name COLLATE DATABASE_DEFAULT = @table_name OR @table_name IS NULL)
                 INNER JOIN      sys.schemas AS sch ON sch.schema_id = tbl.schema_id
                                         AND (sch.name COLLATE DATABASE_DEFAULT = @schema_name OR @schema_name IS NULL)
+                WHERE           sqm.parent_class_desc = N'OBJECT_OR_COLUMN'
         )
         SELECT          cte.schema_id, 
                         cte.schema_name, 
