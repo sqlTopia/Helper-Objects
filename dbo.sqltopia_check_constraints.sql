@@ -34,7 +34,7 @@ RETURN  WITH cteCheckConstraints(schema_id, schema_name, table_id, table_name, c
                 INNER JOIN      sys.columns AS col ON col.object_id = tbl.object_id
                                         AND (col.name COLLATE DATABASE_DEFAULT = @column_name OR @column_name IS NULL)
                 WHERE           col.column_id = chc.parent_column_id
-                                OR CHARINDEX(QUOTENAME(col.name COLLATE DATABASE_DEFAULT), chc.definition COLLATE DATABASE_DEFAULT) >= 1
+                                OR CHARINDEX(QUOTENAME(@column_name), chc.definition COLLATE DATABASE_DEFAULT) >= 1
         )
         SELECT          cte.schema_id, 
                         cte.schema_name, 
