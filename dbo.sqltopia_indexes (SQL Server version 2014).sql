@@ -17,7 +17,7 @@ RETURN  WITH cteDefinitions
                                 ind.index_id,
                                 ind.name COLLATE DATABASE_DEFAULT AS index_name,
                                 ind.type AS index_type_major,
-                                COALESCE(xix.xml_index_type, six.spatial_index_type) AS index_type_minor,
+                                COALESCE(xix.xml_index_type, CAST(six.spatial_index_type AS TINYINT)) AS index_type_minor,
                                 tbl.is_memory_optimized,
                                 CASE
                                         WHEN dsp.name IS NULL THEN N''
@@ -46,7 +46,7 @@ RETURN  WITH cteDefinitions
                                 END AS filter_definition,
                                 xix.secondary_type_desc COLLATE DATABASE_DEFAULT AS xml_type_desc,
                                 yix.name COLLATE DATABASE_DEFAULT AS primary_xml_index_name,
-                                six.tessellation_scheme,
+                                six.tessellation_scheme COLLATE DATABASE_DEFAULT AS tessellation_scheme,
                                 N'ONLINE = OFF' AS online,
                                 N'DROP_EXISTING = OFF' AS drop_existing,
                                 CASE
@@ -250,9 +250,9 @@ RETURN  WITH cteDefinitions
                                                 -- Spatial index
                                                 WHEN cte.index_type_major = CAST(4 AS TINYINT) THEN CONCAT(N'CREATE SPATIAL INDEX ', QUOTENAME(cte.index_name), N' ON ', QUOTENAME(cte.schema_name), N'.', QUOTENAME(cte.table_name), N' (', cte.other_columns, N') USING ', QUOTENAME(cte.tessellation_scheme), N' WITH (', cte.bounding_box, N', ', cte.grids, N', ', cte.cells_per_object, N', ', cte.pad_index, N', ', cte.statistics_norecompute, N', ', cte.sort_in_tempdb, N', ', cte.drop_existing, N', ', cte.online, N', ', cte.allow_row_locks, N', ', cte.allow_page_locks, N')', cte.data_space_definition, ';')
                                                 -- XML primary index
-                                                WHEN cte.index_type_major = CAST(3 AS TINYINT) AND cte.index_type_minor = CAST(0 AS BIT) THEN CONCAT(N'CREATE PRIMARY XML INDEX ', QUOTENAME(cte.index_name), N' ON ', QUOTENAME(cte.schema_name), N'.', QUOTENAME(cte.table_name), N' (', cte.other_columns, N') WITH (', cte.pad_index, N', ', cte.statistics_norecompute, N', ', cte.sort_in_tempdb, N', ', cte.drop_existing, N', ', cte.online, N', ', cte.allow_row_locks, N', ', cte.allow_page_locks, N');')
+                                                WHEN cte.index_type_major = CAST(3 AS TINYINT) AND cte.index_type_minor = CAST(0 AS TINYINT) THEN CONCAT(N'CREATE PRIMARY XML INDEX ', QUOTENAME(cte.index_name), N' ON ', QUOTENAME(cte.schema_name), N'.', QUOTENAME(cte.table_name), N' (', cte.other_columns, N') WITH (', cte.pad_index, N', ', cte.statistics_norecompute, N', ', cte.sort_in_tempdb, N', ', cte.drop_existing, N', ', cte.online, N', ', cte.allow_row_locks, N', ', cte.allow_page_locks, N');')
                                                 -- XML index
-                                                WHEN cte.index_type_major = CAST(3 AS TINYINT) AND cte.index_type_minor = CAST(1 AS BIT) THEN CONCAT(N'CREATE XML INDEX ', QUOTENAME(cte.index_name), N' ON ', QUOTENAME(cte.schema_name), N'.', QUOTENAME(cte.table_name), N' (', cte.other_columns, N') USING XML INDEX ', QUOTENAME(cte.primary_xml_index_name), N' FOR ', QUOTENAME(cte.xml_type_desc), N' WITH (', cte.pad_index, N', ', cte.statistics_norecompute, N', ', cte.sort_in_tempdb, N', ', cte.drop_existing, N', ', cte.online, N', ', cte.allow_row_locks, N', ', cte.allow_page_locks, N');')
+                                                WHEN cte.index_type_major = CAST(3 AS TINYINT) AND cte.index_type_minor = CAST(1 AS TINYINT) THEN CONCAT(N'CREATE XML INDEX ', QUOTENAME(cte.index_name), N' ON ', QUOTENAME(cte.schema_name), N'.', QUOTENAME(cte.table_name), N' (', cte.other_columns, N') USING XML INDEX ', QUOTENAME(cte.primary_xml_index_name), N' FOR ', QUOTENAME(cte.xml_type_desc), N' WITH (', cte.pad_index, N', ', cte.statistics_norecompute, N', ', cte.sort_in_tempdb, N', ', cte.drop_existing, N', ', cte.online, N', ', cte.allow_row_locks, N', ', cte.allow_page_locks, N');')
                                                 -- Nonclustered index
                                                 WHEN cte.index_type_major = CAST(2 AS TINYINT) AND cte.is_primary_key = CAST(1 AS BIT) THEN CONCAT(N'ALTER TABLE ', QUOTENAME(cte.schema_name), N'.', QUOTENAME(cte.table_name), N' ADD CONSTRAINT ', QUOTENAME(cte.index_name), N' PRIMARY KEY NONCLUSTERED (', cte.key_columns, N')', cte.include_columns, cte.filter_definition, N' WITH(', cte.online, N', ', cte.pad_index, N', ', cte.statistics_norecompute, N', ', cte.sort_in_tempdb, N', ', cte.ignore_dup_key, N', ', cte.allow_row_locks, N', ', cte.allow_page_locks, N', ', cte.fill_factor, N')', cte.data_space_definition, ';')
                                                 WHEN cte.index_type_major = CAST(2 AS TINYINT) AND cte.is_unique_constraint = CAST(1 AS BIT) THEN CONCAT(N'ALTER TABLE ', QUOTENAME(cte.schema_name), N'.', QUOTENAME(cte.table_name), N' ADD CONSTRAINT ', QUOTENAME(cte.index_name), N' UNIQUE NONCLUSTERED (', cte.key_columns, N')', cte.include_columns, cte.filter_definition, N' WITH(', cte.online, N', ', cte.pad_index, N', ', cte.statistics_norecompute, N', ', cte.sort_in_tempdb, N', ', cte.ignore_dup_key, N', ', cte.allow_row_locks, N', ', cte.allow_page_locks, N', ', cte.fill_factor, N')', cte.data_space_definition, ';')
