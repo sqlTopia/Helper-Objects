@@ -12,7 +12,7 @@ RETURN  WITH cteTriggers(trigger_id, trigger_name, trigger_definition, is_disabl
                                 trg.name COLLATE DATABASE_DEFAULT AS trigger_name,
                                 sqm.definition COLLATE DATABASE_DEFAULT AS trigger_definition,
                                 trg.is_disabled,
-                                trg.is_ms_shipped,
+                                trg.is_ms_shipped
                 FROM            sys.sql_modules AS sqm
                 INNER JOIN      sys.triggers AS trg ON trg.object_id = sqm.object_id
                 WHERE           trg.parent_class_desc = N'DATABASE'
