@@ -23,7 +23,6 @@ RETURN  WITH cteDefinitions
                                         WHEN dsp.name IS NULL THEN N''
                                         WHEN p.content IS NULL THEN CONCAT(N' ON ', QUOTENAME(dsp.name COLLATE DATABASE_DEFAULT))
                                         ELSE CONCAT(N' ON ', QUOTENAME(dsp.name COLLATE DATABASE_DEFAULT), N'(', p.content, N')')
-                                        --ELSE CONCAT(N' ON ', QUOTENAME(dsp.name COLLATE DATABASE_DEFAULT), N'(', STUFF(p.content.value(N'(.)[1]', N'NVARCHAR(MAX)'), 1, 2, N''), N')')
                                 END AS data_space_definition,
                                 dsp.type AS data_space_type,
                                 c.content AS data_compression,
