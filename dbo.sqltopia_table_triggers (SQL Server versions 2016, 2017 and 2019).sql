@@ -8,7 +8,7 @@ ALTER FUNCTION dbo.sqltopia_table_triggers
 )
 RETURNS TABLE
 AS
-RETURN  WITH cteTriggers(schema_id, schema_name, table_id, table_name, trigger_id, trigger_name, trigger_definition, is_disabled, is_ms_shipped)
+RETURN  WITH cteTableTriggers(schema_id, schema_name, table_id, table_name, trigger_id, trigger_name, trigger_definition, is_disabled, is_ms_shipped)
         AS (
                 SELECT          sch.schema_id,
                                 sch.name COLLATE DATABASE_DEFAULT AS schema_name,
@@ -37,7 +37,7 @@ RETURN  WITH cteTriggers(schema_id, schema_name, table_id, table_name, trigger_i
                         cte.is_ms_shipped,
                         CAST(act.action_code AS NCHAR(4)) AS action_code,
                         act.sql_text
-        FROM            cteTriggers AS cte
+        FROM            cteTableTriggers AS cte
         CROSS APPLY     (
                                 VALUES  (
                                                 N'drtg',
