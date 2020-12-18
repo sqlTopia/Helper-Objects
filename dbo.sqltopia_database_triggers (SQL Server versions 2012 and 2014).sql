@@ -27,7 +27,7 @@ RETURN  WITH cteTriggers(trigger_id, trigger_name, trigger_definition)
                                         ),
                                         (
                                                 N'crdt',
-                                                CONCAT(N'CREATE TRIGGER ', QUOTENAME(cte.trigger_name), N' ON DATABASE FOR ', cte.trigger_definition, N';')
+                                                CONCAT(cte.trigger_definition, N';')
                                         ),
                                         (
                                                 N'didt',
