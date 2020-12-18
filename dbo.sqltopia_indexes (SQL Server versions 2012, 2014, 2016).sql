@@ -70,7 +70,7 @@ RETURN  WITH cteDefinitions
                                         WHEN ind.allow_page_locks = 1 THEN N'ALLOW_PAGE_LOCKS = ON'
                                         ELSE N'ALLOW_PAGE_LOCKS = OFF'
                                 END AS allow_page_locks,
-                                CONCAT(N'FILLFACTOR = ', cfg.fill_factor) AS fill_factor,
+                                CONCAT(N'FILLFACTOR = ', cfg.fill_factor, 100) AS fill_factor,
                                 pfs.page_count,
                                 CASE
                                         WHEN six.spatial_index_type = 1 THEN CONCAT(N'BOUNDING_BOX = (', sit.bounding_box_xmin, N', ', sit.bounding_box_ymin, N', ', sit.bounding_box_xmax, N', ', sit.bounding_box_ymax, N')')
