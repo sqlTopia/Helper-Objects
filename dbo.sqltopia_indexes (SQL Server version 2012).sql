@@ -17,7 +17,7 @@ RETURN  WITH cteDefinitions
                                 ind.index_id,
                                 ind.name COLLATE DATABASE_DEFAULT AS index_name,
                                 ind.type AS index_type_major,
-                                COALESCE(xix.xml_index_type, six.spatial_index_type) AS index_type_minor,
+                                COALESCE(xix.xml_index_type, CAST(six.spatial_index_type AS TINYINT)) AS index_type_minor,
                                 0 AS is_memory_optimized,
                                 CASE
                                         WHEN dsp.name IS NULL THEN N''
