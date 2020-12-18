@@ -22,19 +22,19 @@ RETURN  WITH cteDefinitions
                                 CASE
                                         WHEN dsp.name IS NULL THEN N''
                                         WHEN p.content IS NULL THEN CONCAT(N' ON ', QUOTENAME(dsp.name COLLATE DATABASE_DEFAULT))
-                                        ELSE CONCAT(N' ON ', QUOTENAME(dsp.name COLLATE DATABASE_DEFAULT), N'(', STUFF(p.content.value(N'(.)[1]', N'NVARCHAR(MAX)'), 1, 2, N''), N')')
+                                        ELSE CONCAT(N' ON ', QUOTENAME(dsp.name COLLATE DATABASE_DEFAULT), N'(', STUFF(CAST(p.content AS NVARCHAR(MAX)), 1, 2, N''), N')')
                                 END AS data_space_definition,
                                 dsp.type AS data_space_type,
-                                STUFF(c.content.value(N'(.)[1]', N'NVARCHAR(MAX)'), 1, 2, N'') AS data_compression,
+                                STUFF(CAST(c.content AS NVARCHAR(MAX)), 1, 2, N'') AS data_compression,
                                 CASE
                                         WHEN k.content IS NULL THEN N''
-                                        ELSE STUFF(k.content.value(N'(.)[1]', N'NVARCHAR(MAX)'), 1, 2, N'')
+                                        ELSE STUFF(CAST(k.content AS NVARCHAR(MAX)), 1, 2, N'')
                                 END AS key_columns,
                                 CASE
                                         WHEN i.content IS NULL THEN N''
-                                        ELSE STUFF(i.content.value(N'(.)[1]', N'NVARCHAR(MAX)'), 1, 2, N'')
+                                        ELSE STUFF(CAST(i.content AS NVARCHAR(MAX)), 1, 2, N'')
                                 END AS include_columns,
-                                STUFF(o.content.value(N'(.)[1]', N'NVARCHAR(MAX)'), 1, 2, N'') AS other_columns,
+                                STUFF(CAST(o.content AS NVARCHAR(MAX)), 1, 2, N'') AS other_columns,
                                 CONCAT(N'BUCKET_COUNT = ', his.total_bucket_count) AS bucket_count,
                                 ind.is_primary_key,
                                 ind.is_unique_constraint,
@@ -103,7 +103,7 @@ RETURN  WITH cteDefinitions
                                         AND sta.stats_id = ind.index_id
                 LEFT JOIN       sys.spatial_index_tessellations AS sit ON sit.object_id = ind.object_id
                                         AND sit.index_id = ind.index_id
-                CROSS APPLY     (
+                OUTER APPLY     (
                                         SELECT  CASE
                                                         WHEN ind.fill_factor = 0 AND CONVERT(TINYINT, value) = 0 THEN CAST(100 AS TINYINT)
                                                         WHEN ind.fill_factor = 0 THEN CONVERT(TINYINT, value)
@@ -195,7 +195,7 @@ RETURN  WITH cteDefinitions
                                                         TYPE
                                 ) AS o(content)
                 OUTER APPLY     (
-                                        SELECT          CONCAT(', DATA_COMPRESSION = ', dc.type_desc, ' ON PARTITIONS (', STUFF(p.info.value('.', 'NVARCHAR(MAX)'), 1, 2, N''), N')')
+                                        SELECT          CONCAT(', DATA_COMPRESSION = ', dc.type_desc, ' ON PARTITIONS (', STUFF(CAST(p.info AS NVARCHAR(MAX)), 1, 2, N''), N')')
                                         FROM            (
                                                                 VALUES  (0, N'NONE'),
                                                                         (1, N'ROW'),
@@ -220,11 +220,11 @@ RETURN  WITH cteDefinitions
                 WHERE           ind.type >= 1
                                 AND     (
                                                 @column_name IS NULL
-                                                OR @column_name IS NOT NULL AND CHARINDEX(QUOTENAME(@column_name), k.content.value(N'(.)[1]', N'NVARCHAR(MAX)')) >= CAST(1 AS BIGINT)
-                                                OR @column_name IS NOT NULL AND CHARINDEX(QUOTENAME(@column_name), i.content.value(N'(.)[1]', N'NVARCHAR(MAX)')) >= CAST(1 AS BIGINT)
-                                                OR @column_name IS NOT NULL AND CHARINDEX(QUOTENAME(@column_name), p.content.value(N'(.)[1]', N'NVARCHAR(MAX)')) >= CAST(1 AS BIGINT)
-                                                OR @column_name IS NOT NULL AND CHARINDEX(QUOTENAME(@column_name), o.content.value(N'(.)[1]', N'NVARCHAR(MAX)')) >= CAST(1 AS BIGINT)
-                                                OR @column_name IS NOT NULL AND CHARINDEX(QUOTENAME(@column_name), c.content.value(N'(.)[1]', N'NVARCHAR(MAX)')) >= CAST(1 AS BIGINT)
+                                                OR @column_name IS NOT NULL AND CHARINDEX(QUOTENAME(@column_name), CAST(k.content AS NVARCHAR(MAX))) >= CAST(1 AS INT)
+                                                OR @column_name IS NOT NULL AND CHARINDEX(QUOTENAME(@column_name), CAST(i.content AS NVARCHAR(MAX))) >= CAST(1 AS INT)
+                                                OR @column_name IS NOT NULL AND CHARINDEX(QUOTENAME(@column_name), CAST(p.content AS NVARCHAR(MAX))) >= CAST(1 AS INT)
+                                                OR @column_name IS NOT NULL AND CHARINDEX(QUOTENAME(@column_name), CAST(o.content AS NVARCHAR(MAX))) >= CAST(1 AS INT)
+                                                OR @column_name IS NOT NULL AND CHARINDEX(QUOTENAME(@column_name), CAST(c.content AS NVARCHAR(MAX))) >= CAST(1 AS INT)
                                                 OR ind.has_filter = CAST(1 AS BIT) AND @column_name IS NOT NULL AND CHARINDEX(QUOTENAME(@column_name), ind.filter_definition COLLATE DATABASE_DEFAULT) >= CAST(1 AS BIGINT)
                                         )
         )
