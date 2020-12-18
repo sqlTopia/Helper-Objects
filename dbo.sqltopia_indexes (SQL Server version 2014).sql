@@ -39,7 +39,7 @@ RETURN  WITH cteDefinitions
                                 ind.is_primary_key,
                                 ind.is_unique_constraint,
                                 ind.is_unique,
-                                CONCAT(N'COMPRESSION_DELAY = ', ind.compression_delay) AS compression_delay,
+                                N'' AS compression_delay,
                                 CASE
                                         WHEN ind.filter_definition IS NULL THEN N''
                                         ELSE CONCAT(N' WHERE ', ind.filter_definition COLLATE DATABASE_DEFAULT)
