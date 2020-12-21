@@ -37,7 +37,7 @@ RETURN  WITH cteForeignKeys
                                 END AS update_action,
                                 fk.is_disabled,
                                 fk.is_ms_shipped,
-                                fk.is_not_trusted,
+                                fk.is_not_trusted
                 FROM            sys.foreign_keys AS fk
                 INNER JOIN      sys.tables AS pt ON pt.object_id = fk.referenced_object_id
                 INNER JOIN      sys.schemas AS ps ON ps.schema_id = pt.schema_id
