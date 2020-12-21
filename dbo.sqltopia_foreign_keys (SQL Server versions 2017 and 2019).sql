@@ -77,7 +77,6 @@ RETURN  WITH cteForeignKeys
         )
         SELECT          cte.foreign_key_id,
                         cte.foreign_key_name,
-                        cte.is_not_trusted,
                         cte.parent_schema_id,
                         cte.parent_schema_name,
                         cte.parent_table_id,
