@@ -35,6 +35,8 @@ RETURN  WITH cteForeignKeys
                                         WHEN fk.update_referential_action = 3 THEN N'ON UPDATE SET DEFAULT'
                                         ELSE N'ON UPDATE NO ACTION'
                                 END AS update_action,
+                                fk.is_disabled,
+                                fk.is_ms_shipped,
                                 fk.is_not_trusted
                 FROM            sys.foreign_keys AS fk
                 INNER JOIN      sys.tables AS pt ON pt.object_id = fk.referenced_object_id
@@ -90,6 +92,9 @@ RETURN  WITH cteForeignKeys
                         cte.child_schema_name,
                         cte.child_table_id,
                         cte.child_table_name,
+                        cte.is_disabled,
+                        cte.is_ms_shipped,
+                        cte.is_not_trusted,
                         CAST(act.action_code AS NCHAR(4)) AS action_code,
                         act.sql_text
         FROM            cteForeignKeys AS cte
