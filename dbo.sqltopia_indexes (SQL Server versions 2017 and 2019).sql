@@ -85,7 +85,7 @@ RETURN  WITH cteIndexes
                                         AND (tbl.name COLLATE DATABASE_DEFAULT = @table_name OR @table_name IS NULL)
                 INNER JOIN      sys.schemas AS sch ON sch.schema_id = tbl.schema_id
                                         AND (sch.name COLLATE DATABASE_DEFAULT = @schema_name OR @schema_name IS NULL)
-                CROSS APPLY     (
+                OUTER APPLY     (
                                         SELECT  SUM(ps.used_page_count) AS page_count
                                         FROM    sys.dm_db_partition_stats AS ps
                                         WHERE   ps.object_id = ind.object_id
@@ -104,7 +104,7 @@ RETURN  WITH cteIndexes
                                         AND sta.stats_id = ind.index_id
                 LEFT JOIN       sys.spatial_index_tessellations AS sit ON sit.object_id = ind.object_id
                                         AND sit.index_id = ind.index_id
-                CROSS APPLY     (
+                OUTER APPLY     (
                                         SELECT  CASE
                                                         WHEN ind.fill_factor = 0 AND CONVERT(TINYINT, value) = 0 THEN CAST(100 AS TINYINT)
                                                         WHEN ind.fill_factor = 0 THEN CONVERT(TINYINT, value)
