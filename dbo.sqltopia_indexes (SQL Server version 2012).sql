@@ -85,7 +85,7 @@ RETURN  WITH cteIndexes
                                         AND (tbl.name COLLATE DATABASE_DEFAULT = @table_name OR @table_name IS NULL)
                 INNER JOIN      sys.schemas AS sch ON sch.schema_id = tbl.schema_id
                                         AND (sch.name COLLATE DATABASE_DEFAULT = @schema_name OR @schema_name IS NULL)
-                CROSS APPLY     (
+                OUTER APPLY     (
                                         SELECT  SUM(ps.used_page_count) AS page_count
                                         FROM    sys.dm_db_partition_stats AS ps
                                         WHERE   ps.object_id = ind.object_id
