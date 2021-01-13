@@ -27,7 +27,9 @@ WHILE @current_retry <= @max_retry_count
                         BREAK;
                 END TRY
                 BEGIN CATCH
-                        IF ERROR_NUMBER() = 1204                -- SQL Server cannot obtain a lock resource.
+                        IF ERROR_NUMBER() = 1203                -- Preemptive unlock.
+                                SET     @current_retry += 1;
+                        ELSE IF ERROR_NUMBER() = 1204           -- SQL Server cannot obtain a lock resource.
                                 SET     @current_retry += 1;
                         ELSE IF ERROR_NUMBER() = 1205           -- Resources are accessed in conflicting order on separate transactions, causing a deadlock.
                                 SET     @current_retry += 1;
