@@ -4,7 +4,8 @@ GO
 ALTER PROCEDURE dbo.sqltopia_retry
 (
         @sql_text NVARCHAR(MAX),
-        @max_retry_count TINYINT = 99
+        @max_retry_count TINYINT = 99,
+        @waitfor TIME(3) = '00:00:00.250'
 )
 AS
 
@@ -12,7 +13,8 @@ AS
 SET NOCOUNT ON;
 
 -- Local helper variable
-DECLARE @current_retry TINYINT = 0;
+DECLARE @current_retry TINYINT = 0,
+        @delay CHAR(12) = @waitfor;
 
 -- Validate user supplied parameter values
 IF @max_retry_count IS NULL OR @max_retry_count > 99
@@ -44,6 +46,8 @@ WHILE @current_retry <= @max_retry_count
                                         RETURN  -1000;
                                 END;
                 END CATCH;
+
+                WAITFOR DELAY   @delay;
         END;
 
 IF @current_retry > @max_retry_count
