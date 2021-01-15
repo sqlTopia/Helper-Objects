@@ -54,7 +54,7 @@ WHILE @current_retry <= @max_retry_count
 
 IF @current_retry > @max_retry_count
         BEGIN
-                RAISERROR(N'Maximum retry count %s is reached.', 18, 1, @max_retry_count) WITH NOWAIT;
+                RAISERROR(N'Maximum retry count %d is reached.', 18, 1, @max_retry_count) WITH NOWAIT;
                                 
                 RETURN  -2000;
         END;
