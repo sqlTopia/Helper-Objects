@@ -37,6 +37,8 @@ WHILE @current_retry <= @max_retry_count
                                 SET     @current_retry += 1;
                         ELSE IF ERROR_NUMBER() = 1222           -- Another transaction held a lock on a required resource longer than this query could wait for it.
                                 SET     @current_retry += 1;
+                        ELSE IF ERROR_NUMBER() = 2021           -- Entity was modified.
+                                SET     @current_retry += 1;
                         ELSE
                                 BEGIN
                                         THROW;
