@@ -42,11 +42,11 @@ RETURN  WITH cteComputedColumns(schema_id, schema_name, table_id, table_name, co
         FROM            cteComputedColumns AS cte
         CROSS APPLY     (
                                 VALUES  (
-                                                N'drop',
+                                                N'drcc',
                                                 CONCAT(N'ALTER TABLE ', QUOTENAME(cte.schema_name), N'.', QUOTENAME(cte.table_name), N' DROP COLUMN ', QUOTENAME(cte.column_name), N';')
                                         ),
                                         (
-                                                N'create',
+                                                N'crcc',
                                                 CONCAT(N'ALTER TABLE ', QUOTENAME(cte.schema_name), N'.', QUOTENAME(cte.table_name), N' ADD ', QUOTENAME(cte.column_name), N' AS ', cte.computed_definition, CASE WHEN cte.is_persisted = 1 THEN N' PERSISTED;' ELSE N';' END)
                                         )
                         ) AS act(action_code, sql_text);
