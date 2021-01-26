@@ -18,9 +18,9 @@ RETURN  WITH cteRules(schema_id, schema_name, table_id, table_name, column_id, c
                                 tbl.name COLLATE DATABASE_DEFAULT AS table_name,
                                 col.column_id,
                                 col.name COLLATE DATABASE_DEFAULT AS column_name,
-                                rul.object_id AS default_id,
-                                rul.name COLLATE DATABASE_DEFAULT AS default_name,
-                                sqm.definition COLLATE DATABASE_DEFAULT AS default_definition
+                                rul.object_id AS rule_id,
+                                rul.name COLLATE DATABASE_DEFAULT AS rule_name,
+                                sqm.definition COLLATE DATABASE_DEFAULT AS rule_definition
                 FROM            sys.columns AS col
                 INNER JOIN      sys.tables AS tbl ON tbl.object_id = col.object_id
                                         AND (tbl.name COLLATE DATABASE_DEFAULT = @table_name OR @table_name IS NULL)
@@ -50,7 +50,7 @@ RETURN  WITH cteRules(schema_id, schema_name, table_id, table_name, column_id, c
                                         ),
                                         (
                                                 N'biru',
-                                                CONCAT(N'EXEC sys.sp_bindrule @defname = N', QUOTENAME(cte.rule_name, N''''), N', @objname = N''', REPLACE(QUOTENAME(cte.schema_name) + N'.' + QUOTENAME(cte.table_name) + N'.' + CASE WHEN cte.column_name = @column_name AND @new_column_name > N'' THEN QUOTENAME(@new_column_name) ELSE QUOTENAME(cte.column_name) END, N'''', N''''''), N''';')
+                                                CONCAT(N'EXEC sys.sp_bindrule @rulename = N', QUOTENAME(cte.rule_name, N''''), N', @objname = N''', REPLACE(QUOTENAME(cte.schema_name) + N'.' + QUOTENAME(cte.table_name) + N'.' + CASE WHEN cte.column_name = @column_name AND @new_column_name > N'' THEN QUOTENAME(@new_column_name) ELSE QUOTENAME(cte.column_name) END, N'''', N''''''), N''';')
                                         ),
                                         (
                                                 N'drru',
