@@ -18,7 +18,7 @@ RETURN  WITH cteRules(schema_id, schema_name, table_id, table_name, column_id, c
                                 tbl.name COLLATE DATABASE_DEFAULT AS table_name,
                                 col.column_id,
                                 col.name COLLATE DATABASE_DEFAULT AS column_name,
-                                rul.object_id AS default_id,
+                                rul.object_id AS rule_id,
                                 rul.name COLLATE DATABASE_DEFAULT AS rule_name,
                                 sqm.definition COLLATE DATABASE_DEFAULT AS rule_definition
                 FROM            sys.columns AS col
