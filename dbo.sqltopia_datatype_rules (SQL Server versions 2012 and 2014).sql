@@ -50,7 +50,7 @@ RETURN  WITH cteRules(schema_id, schema_name, table_id, table_name, column_id, c
                                         ),
                                         (
                                                 N'biru',
-                                                CONCAT(N'EXEC sys.sp_bindrule @defname = N', QUOTENAME(cte.rule_name, N''''), N', @objname = N''', REPLACE(QUOTENAME(cte.schema_name) + N'.' + QUOTENAME(cte.table_name) + N'.' + CASE WHEN cte.column_name = @column_name AND @new_column_name > N'' THEN QUOTENAME(@new_column_name) ELSE QUOTENAME(cte.column_name) END, N'''', N''''''), N''';')
+                                                CONCAT(N'EXEC sys.sp_bindrule @rulename = N', QUOTENAME(cte.rule_name, N''''), N', @objname = N''', REPLACE(QUOTENAME(cte.schema_name) + N'.' + QUOTENAME(cte.table_name) + N'.' + CASE WHEN cte.column_name = @column_name AND @new_column_name > N'' THEN QUOTENAME(@new_column_name) ELSE QUOTENAME(cte.column_name) END, N'''', N''''''), N''';')
                                         ),
                                         (
                                                 N'drru',
