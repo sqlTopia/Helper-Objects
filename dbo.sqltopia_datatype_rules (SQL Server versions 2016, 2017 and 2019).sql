@@ -29,7 +29,7 @@ RETURN  WITH cteRules(schema_id, schema_name, table_id, table_name, column_id, c
                 INNER JOIN      sys.objects AS def ON def.object_id = col.default_object_id
                                         AND def.type COLLATE DATABASE_DEFAULT = 'R'
                 INNER JOIN      sys.sql_modules AS sqm ON sqm.object_id = def.object_id
-                WHERE           col.default_object_id <> 0
+                WHERE           col.rule_object_id <> 0
                                 AND (col.name COLLATE DATABASE_DEFAULT = @column_name OR @column_name IS NULL)
         )
         SELECT          cte.schema_id, 
