@@ -55,7 +55,7 @@ RETURN  -- Work with nested schemabound views
                                         ),
                                         (
                                                 N'crvw',
-                                                sqm.definition COLLATE DATABASE_DEFAULT
+                                                CONCAT(sqm.definition COLLATE DATABASE_DEFAULT, N';')
                                         )
                         ) AS act(action_code, sql_text);
 GO
