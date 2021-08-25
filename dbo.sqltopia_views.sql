@@ -11,7 +11,7 @@ RETURNS TABLE
 RETURN  -- Work with nested schemabound views
         WITH cteViews(dependency_level, referencing_id, referencing_minor_id)
         AS (
-                SELECT          0 AS dependency_level,
+                SELECT          1 AS dependency_level,
                                 sed.referencing_id,
                                 sed.referencing_minor_id
                 FROM            sys.sql_expression_dependencies AS sed
