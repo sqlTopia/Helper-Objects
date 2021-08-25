@@ -38,7 +38,7 @@ RETURN  -- Work with nested schemabound views
         SELECT          sch.name COLLATE DATABASE_DEFAULT AS schema_name,
                         vw.name COLLATE DATABASE_DEFAULT AS view_name,
                         cte.dependency_level,
-                        act.action_code,
+                        CAST(act.action_code AS NCHAR(4)) AS action_code,
                         act.sql_text
         FROM            (
                                 SELECT DISTINCT dependency_level,
