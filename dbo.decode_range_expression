@@ -1,4 +1,4 @@
-CREATE FUNCTION decode_range_expression
+CREATE FUNCTION dbo.decode_range_expression
 (
         @expression VARCHAR(MAX),
         @limit_low INT,
