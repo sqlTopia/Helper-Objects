@@ -1,0 +1,55 @@
+CREATE FUNCTION dbo.get_numbers
+(
+        @low BIGINT,
+        @high BIGINT
+)
+RETURNS TABLE   -- A maximum of 4 294 967 296 numbers will be generated!
+AS
+RETURN  WITH cteLevel1(number)
+        AS (
+                SELECT  1 AS number
+                FROM    (
+                                VALUES   (0),
+                                         (1),
+                                         (2),
+                                         (3),
+                                         (4),
+                                         (5),
+                                         (6),
+                                         (7),
+                                         (8),
+                                         (9),
+                                        (10),
+                                        (11),
+                                        (12),
+                                        (13),
+                                        (14),
+                                        (15)
+                        ) AS tbl(number)
+        ), cteLevel2(number)
+        AS (
+                SELECT          1 AS number
+                FROM            cteLevel1 AS lvl1_a
+                CROSS JOIN      cteLevel1 AS lvl1_b
+        ), cteLevel3(number)
+        AS (
+                SELECT          1 AS number
+                FROM            cteLevel2 AS lvl2_a
+                CROSS JOIN      cteLevel2 AS lvl2_b
+        ), cteLevel4(number)
+        AS (
+                SELECT          1
+                FROM            cteLevel3 AS lvl3_a
+                CROSS JOIN      cteLevel3 AS lvl3_b
+        ), cteNumbers(rownum)
+        AS (
+                SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS rownum
+                FROM    cteLevel4 AS lvl4
+        )
+        SELECT          TOP(@high - @low + 1)
+                        cte.rownum AS rownumber,
+                        @low + cte.rownum - 1 AS number,
+                        @high - cte.rownum + 1 AS reverse_number
+        FROM            cteNumbers AS cte
+        ORDER BY        cte.rownum;
+GO
