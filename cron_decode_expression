@@ -1,0 +1,71 @@
+CREATE FUNCTION cron_decode_expression
+(
+        @expression VARCHAR(MAX),
+        @limit_low INT,
+        @limit_high INT,
+        @default INT,
+        @value_min INT,
+        @value_max INT
+)
+RETURNS TABLE
+AS
+RETURN  WITH cteSource(range_low, range_high, range_base, range_step)
+        AS (
+                SELECT  CASE
+                                WHEN TRY_CAST(src.value AS INT) IS NOT NULL THEN CAST(src.value AS INT)
+                                WHEN src.value = '*' THEN @default
+                                WHEN CHARINDEX('-', src.value) >= 1 AND CHARINDEX('/', src.value) >= 1 THEN CAST(NULL AS INT)
+                                WHEN src.value LIKE '%-%-%' THEN CAST(NULL AS INT)
+                                WHEN src.value LIKE '%-%' THEN TRY_CAST(SUBSTRING(src.value, 1, CHARINDEX('-', src.value) - 1) AS INT)
+                                WHEN src.value LIKE '%/%/%' THEN CAST(NULL AS INT)
+                                WHEN src.value LIKE '%/%' THEN @value_min
+                                ELSE CAST(NULL AS INT)
+                        END AS range_low,
+                        CASE
+                                WHEN TRY_CAST(src.value AS INT) IS NOT NULL THEN CAST(src.value AS INT)
+                                WHEN src.value = '*' THEN @limit_high
+                                WHEN CHARINDEX('-', src.value) >= 1 AND CHARINDEX('/', src.value) >= 1 THEN CAST(NULL AS INT)
+                                WHEN src.value LIKE '%-%-%' THEN CAST(NULL AS INT)
+                                WHEN src.value LIKE '%-%' THEN TRY_CAST(SUBSTRING(src.value, CHARINDEX('-', src.value) + 1, LEN(src.value) - CHARINDEX('-', src.value)) AS INT)
+                                WHEN src.value LIKE '%/%/%' THEN CAST(NULL AS INT)
+                                WHEN src.value LIKE '%/%' THEN @value_max
+                                ELSE CAST(NULL AS INT)
+                        END AS range_high,
+                        CASE
+                                WHEN src.value LIKE '%-%' THEN CAST(NULL AS INT)
+                                WHEN src.value LIKE '%/%/%' THEN CAST(NULL AS INT)
+                                WHEN src.value LIKE '%/%' THEN TRY_CAST(SUBSTRING(src.value, 1, CHARINDEX('/', src.value) - 1) AS INT)
+                                ELSE CAST(NULL AS INT)
+                        END AS range_base,
+                        CASE
+                                WHEN src.value LIKE '%-%' THEN CAST(NULL AS INT)
+                                WHEN src.value LIKE '%/%/%' THEN CAST(NULL AS INT)
+                                WHEN src.value LIKE '%/%' THEN TRY_CAST(SUBSTRING(src.value, CHARINDEX('/', src.value) + 1, LEN(src.value) - CHARINDEX('/', src.value)) AS INT)
+                                ELSE NULL
+                        END AS range_step
+                FROM    STRING_SPLIT(@expression, ',') AS src
+                WHERE   @limit_low <= @limit_high
+                        AND @value_min <= @value_max
+        )
+        SELECT DISTINCT w.number
+        FROM            (
+                                SELECT  CASE
+                                                WHEN src.range_low >= @value_min THEN src.range_low
+                                                ELSE @value_min
+                                        END AS value_min,
+                                        CASE
+                                                WHEN src.range_high <= @value_max THEN src.range_high
+                                                ELSE @value_max
+                                        END AS value_max,
+                                        src.range_base,
+                                        src.range_step
+                                FROM    cteSource AS src
+                                WHERE   src.range_low >= @limit_low
+                                        AND src.range_high <= @limit_high
+                                        AND src.range_low <= @value_max
+                                        AND src.range_high >= @value_min
+                        ) AS cte
+        CROSS APPLY     dbo.get_numbers(CASE WHEN cte.range_base >= cte.value_min THEN cte.range_base ELSE cte.value_min END, cte.value_max) AS w
+        WHERE           cte.range_base IS NULL
+                        OR cte.range_base IS NOT NULL AND (w.number - cte.range_base) % cte.range_step = 0;
+GO
