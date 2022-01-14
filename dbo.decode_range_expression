@@ -34,6 +34,7 @@ RETURN  WITH cteSource(range_low, range_high, range_base, range_step)
                         CASE
                                 WHEN src.value LIKE '%-%' THEN CAST(NULL AS INT)
                                 WHEN src.value LIKE '%/%/%' THEN CAST(NULL AS INT)
+                                WHEN src.value LIKE '%/%' AND SUBSTRING(src.value, 1, CHARINDEX('/', src.value) - 1) = '*' THEN @default
                                 WHEN src.value LIKE '%/%' THEN TRY_CAST(SUBSTRING(src.value, 1, CHARINDEX('/', src.value) - 1) AS INT)
                                 ELSE CAST(NULL AS INT)
                         END AS range_base,
