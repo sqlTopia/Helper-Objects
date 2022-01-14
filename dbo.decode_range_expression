@@ -49,7 +49,7 @@ RETURN  WITH cteSource(range_low, range_high, range_base, range_step)
                                 WHERE   cte.range_low <= @value_max
                                         AND cte.range_high >= @value_min
                         ) AS src
-        CROSS APPLY     dbo.get_numbers_fn(src.value_min, src.value_max) AS w
+        CROSS APPLY     dbo.get_numbers(src.value_min, src.value_max) AS w
         WHERE           src.range_base IS NULL
                         OR src.range_base IS NOT NULL AND (w.number - src.range_base) % src.range_step = 0;
 GO
